@@ -1,8 +1,8 @@
 import numpy as np
 import scipy as sp
 import librosa, sys
-from pysndfx import AudioEffectsChain
 from pathlib import Path
+from pysndfx import AudioEffectsChain
 from librosa import load
 from scipy import fftpack as fp
 
@@ -12,13 +12,29 @@ ALPHA = 0.98
 START_FRAME = 12
 SLOPE = 0.9
 THRESHOLD = 10
+MAX_SIGNAL_LENGTH = 400_000
 
 np.seterr(divide='ignore', invalid='ignore')
 
-MAX_SIGNAL_LENGTH = 400000
+def filter(audio, sr, filename="jack-audio.wav", signal_length=MAX_SIGNAL_LENGTH):
+    """
+    Performs Wiener Filtering on a file located at filepath
+    :param clean_signal: 1D numpy array containing the signal of a clean audio file
+    :param sr: sample rate of audio
+    :param filename: string of the audio file name
+    :param signal_length: int representing # of samples to cut audio down to; defaults to 400000
+    """
+    if len(audio) > signal_length:
+        audio = audio[:signal_length]
+    write_name = filename.split(".")[0]
 
-def filter(audio, sr, filename="jack-audio.wav"):
-    print("filter!")
+    stft_noisy, DD_gains, noise_est = DD(audio)
+    TSNR_sig, TSNR_gains = TSNR(stft_noisy, DD_gains, noise_est)
+    signal_est = HRNR(stft_noisy, TSNR_sig, TSNR_gains, noise_est)
+    signal_est = highpass(signal_est, sr)
+
+    new_path = "audio/test_audio_results/" + write_name + "_reduced.wav"
+    wavwrite(new_path, signal_est, sr)
 
 def DD(noisy_signal, alpha=ALPHA, start_frame=START_FRAME):
     """
