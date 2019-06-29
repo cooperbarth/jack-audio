@@ -16,25 +16,26 @@ MAX_SIGNAL_LENGTH = 400_000
 
 np.seterr(divide='ignore', invalid='ignore')
 
-def filter(audio, sr, filename="jack-audio.wav", signal_length=MAX_SIGNAL_LENGTH):
+def filterAudio(audio_signal, sr, filename="jack-audio.wav", signal_length=MAX_SIGNAL_LENGTH):
     """
-    Performs Wiener Filtering on a file located at filepath
+    Performs Wiener Filtering on a 1D numpy audio array
     :param clean_signal: 1D numpy array containing the signal of a clean audio file
     :param sr: sample rate of audio
-    :param filename: string of the audio file name
+    :param filename: string of the audio file name/path to write to
     :param signal_length: int representing # of samples to cut audio down to; defaults to 400000
     """
-    if len(audio) > signal_length:
-        audio = audio[:signal_length]
-    write_name = filename.split(".")[0]
+    if len(audio_signal) > signal_length:
+        audio_signal = audio_signal[:signal_length]
 
-    stft_noisy, DD_gains, noise_est = DD(audio)
+    stft_noisy, DD_gains, noise_est = DD(audio_signal)
     TSNR_sig, TSNR_gains = TSNR(stft_noisy, DD_gains, noise_est)
     signal_est = HRNR(stft_noisy, TSNR_sig, TSNR_gains, noise_est)
     signal_est = highpass(signal_est, sr)
 
-    new_path = "audio/test_audio_results/" + write_name + "_reduced.wav"
-    wavwrite(new_path, signal_est, sr)
+    if filename[-4:] != ".wav":
+        filename += ".wav"
+    wavwrite(filename, signal_est, sr)
+    return filename
 
 def DD(noisy_signal, alpha=ALPHA, start_frame=START_FRAME):
     """

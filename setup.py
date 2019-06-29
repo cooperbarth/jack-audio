@@ -1,8 +1,8 @@
 import setuptools
 
 setuptools.setup(
-    name="jack-audio",
-    version="1.0.0",
+    name="jackAudio",
+    version="1.0.3",
     author="Cooper Barth",
     author_email="cooperfbarth@gmail.com",
     description="A Python package for stationary audio noise reduction.",
