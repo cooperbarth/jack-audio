@@ -4,9 +4,9 @@
 Details: [J.A.C.K.](https://github.com/cooperbarth/Joint-Audio-Correction-Kit)
 
 ## Usage
-'''Python
+```python
 import numpy as np
 import jack-audio
 
 
-'''
+```
